@@ -1,0 +1,39 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: sre-rag-data
+  namespace: {{ .Release.Namespace }}
+spec:
+  accessModes: ["ReadWriteOnce"]
+  resources: { requests: { storage: 5Gi } }
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: sre-rag-service
+  namespace: {{ .Release.Namespace }}
+spec:
+  replicas: {{ .Values.rag.replicas }}
+  selector: { matchLabels: { app: sre-rag-service } }
+  template:
+    metadata: { labels: { app: sre-rag-service } }
+    spec:
+      containers:
+        - name: rag
+          image: "{{ .Values.global.imageRegistry }}/{{ .Values.rag.image }}"
+          imagePullPolicy: {{ .Values.global.imagePullPolicy }}
+          ports: [{ containerPort: 8000 }]
+          envFrom: [{ configMapRef: { name: sre-config } }]
+          volumeMounts: [{ name: data, mountPath: /data }]
+          resources: {{- toYaml .Values.rag.resources | nindent 12 }}
+          readinessProbe: { httpGet: { path: /healthz, port: 8000 }, initialDelaySeconds: 20, periodSeconds: 10 }
+      volumes: [{ name: data, persistentVolumeClaim: { claimName: sre-rag-data } }]
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: sre-rag-service
+  namespace: {{ .Release.Namespace }}
+spec:
+  selector: { app: sre-rag-service }
+  ports: [{ name: http, port: 8000, targetPort: 8000 }]

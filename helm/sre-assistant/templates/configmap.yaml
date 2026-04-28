@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: sre-config
+  namespace: {{ .Release.Namespace }}
+data:
+  REDIS_ADDR: {{ .Values.external.redisAddr | quote }}
+  OLLAMA_URL: {{ .Values.external.ollamaUrl | quote }}
+  OLLAMA_MODEL: {{ .Values.agent.ollamaModel | quote }}
+  RAG_RETRIEVE_URL: "http://sre-rag-service.{{ .Release.Namespace }}.svc.cluster.local:8000/retrieve"
+  ELASTICSEARCH_URL: {{ .Values.external.elasticsearchUrl | quote }}
+  PROMETHEUS_URL: {{ .Values.external.prometheusUrl | quote }}
+  ENABLE_PROM_POLLING: "false"
+  DRY_RUN: {{ .Values.agent.dryRun | quote }}
+  MYSQL_HOST: {{ .Values.external.mysqlHost | quote }}
+  MYSQL_USER: {{ .Values.external.mysqlUser | quote }}
+  MYSQL_DATABASE: {{ .Values.external.mysqlDatabase | quote }}
