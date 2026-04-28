@@ -1,5 +1,0 @@
----
-- name: Worker 加入集群
-  ansible.builtin.command: "{{ hostvars[groups['masters'][0]]['join_command'] }}"
-  args:
-    creates: /etc/kubernetes/kubelet.conf
