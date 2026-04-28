@@ -1,0 +1,19 @@
+apiVersion: monitoring.coreos.com/v1alpha1
+kind: AlertmanagerConfig
+metadata:
+  name: sre-assistant-webhook
+  namespace: monitoring
+  labels:
+    alertmanagerConfig: sre-assistant
+spec:
+  route:
+    groupBy: ['alertname', 'namespace', 'pod', 'node']
+    groupWait: 10s
+    groupInterval: 1m
+    repeatInterval: 10m
+    receiver: sre-agent-webhook
+  receivers:
+    - name: sre-agent-webhook
+      webhookConfigs:
+        - url: 'http://sre-agent-service.sre-assistant.svc.cluster.local:8080/alertmanager/webhook'
+          sendResolved: false

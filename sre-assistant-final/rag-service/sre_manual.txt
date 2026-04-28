@@ -1,0 +1,19 @@
+# K8s SRE 故障处理知识库
+
+## PodCrashLooping
+现象：Pod 反复启动失败，状态为 CrashLoopBackOff。处理顺序：查看 kubectl describe pod 和 kubectl logs --previous，确认是配置、依赖、启动命令还是资源限制问题。临时恢复可以删除 Pod，由 Deployment/ReplicaSet 重建。若多次复现，应回滚 Deployment 或修复配置。
+
+## OOMKilled
+现象：容器退出码 137，Last State 为 OOMKilled。处理顺序：先重启 Pod 恢复服务，再检查内存 request/limit、JVM/Go runtime 参数、内存泄漏。长期方案是调整 resources.limits.memory 或修复泄漏。
+
+## NodeNotReady
+现象：节点状态 NotReady，节点上的 Pod 可能无法正常服务。处理顺序：先 cordon 标记节点不可调度，再驱逐普通业务 Pod 到其他节点，DaemonSet 和 kube-system 核心组件不要随意驱逐。通知管理员检查磁盘、网络、kubelet、containerd。
+
+## ImagePullBackOff
+现象：镜像拉取失败，原因可能是镜像名错误、tag 不存在、仓库权限不足、Secret 缺失。处理顺序：优先回滚到上一个可用 Deployment 版本；再检查 imagePullSecrets、镜像仓库和 tag。
+
+## ConfigMapError
+现象：配置变更后应用启动失败或健康检查失败。处理顺序：保留 ConfigMap 历史版本，例如 app-config-previous；故障时用 previous 覆盖当前 ConfigMap，然后重启应用 Pod。
+
+## ServicePortError
+现象：Service 无法访问后端 Pod。处理顺序：检查 Service selector 是否匹配 Pod label，检查 targetPort 是否等于容器端口，检查 EndpointSlice 是否有后端。

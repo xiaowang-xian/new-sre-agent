@@ -1,0 +1,27 @@
+---
+- name: 1. 初始化所有节点
+  hosts: all
+  become: true
+  roles:
+    - common
+
+- name: 2. 初始化 Master
+  hosts: masters
+  become: true
+  roles:
+    - master
+
+- name: 3. 加入 Worker
+  hosts: workers
+  become: true
+  roles:
+    - worker
+
+- name: 4. 标记 Worker 节点
+  hosts: masters
+  become: true
+  tasks:
+    - name: 给 Worker 节点打标签
+      ansible.builtin.command: kubectl label node {{ item }} node-role.kubernetes.io/worker=worker --overwrite
+      loop: "{{ groups['workers'] }}"
+      changed_when: false

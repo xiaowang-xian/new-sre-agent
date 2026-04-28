@@ -1,0 +1,11 @@
+[masters]
+k8s-node1 ansible_host=192.168.30.11
+
+[workers]
+k8s-node2 ansible_host=192.168.30.12
+k8s-node3 ansible_host=192.168.30.13
+
+[all:vars]
+master_ip=192.168.30.11
+pod_network_cidr=10.244.0.0/16
+kubernetes_version=1.30
